@@ -1,4 +1,3 @@
-
 from playwright.sync_api import sync_playwright
 
 
@@ -17,25 +16,21 @@ def obtener_productos():
 
         pagina = navegador.new_page()
 
-pagina.goto(
-    URL,
-    wait_until="domcontentloaded",
-    timeout=90000
-)
+        pagina.goto(
+            URL,
+            wait_until="domcontentloaded",
+            timeout=90000
+        )
 
         pagina.wait_for_timeout(8000)
-
-
-pagina.screenshot(
-    path="debug.png",
-    full_page=True
-)
 
         tarjetas = pagina.locator(
             "li.product"
         )
 
         cantidad = tarjetas.count()
+
+        print("Productos encontrados:", cantidad)
 
         for i in range(cantidad):
 

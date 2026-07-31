@@ -1,48 +1,94 @@
-import requests
-from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
+
+
+URL = "https://cddistribution.com/pe/backorder-coleccionables/"
 
 
 def obtener_productos():
-    """
-    Función principal del scraper.
-    Retorna una lista de productos.
-    """
-
     productos = []
 
-    try:
-        # URL de prueba (puedes cambiarla por tu fuente real)
-        url = "https://example.com"
+    with sync_playwright() as p:
 
-        response = requests.get(
-            url,
-            timeout=10,
-            headers={
-                "User-Agent": "Mozilla/5.0"
+        navegador = p.chromium.launch(
+            headless=True
+        )
+
+        pagina = navegador.new_page(
+            viewport={
+                "width": 1280,
+                "height": 1200
             }
         )
 
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
+        pagina.goto(
+            URL,
+            wait_until="domcontentloaded",
+            timeout=90000
+        )
 
-            productos.append({
-                "nombre": "Scraper funcionando",
-                "precio": 0,
-                "estado": "OK"
-            })
+        pagina.wait_for_timeout(8000)
 
-        else:
-            productos.append({
-                "nombre": "Error HTTP",
-                "precio": 0,
-                "estado": response.status_code
-            })
+        pagina.screenshot(
+            path="pagina.png",
+            full_page=True
+        )
 
-    except Exception as e:
-        productos.append({
-            "nombre": "Error scraper",
-            "precio": 0,
-            "estado": str(e)
-        })
+        html = pagina.content()
+
+        with open(
+            "pagina.html",
+            "w",
+            encoding="utf-8"
+        ) as f:
+            f.write(html)
+
+        tarjetas = pagina.locator("li.product")
+
+        cantidad = tarjetas.count()
+
+        print("Productos encontrados:", cantidad)
+
+        for i in range(cantidad):
+
+            producto = tarjetas.nth(i)
+
+            try:
+                nombre = producto.locator(
+                    ".woocommerce-loop-product__title"
+                ).inner_text()
+            except:
+                nombre = ""
+
+            try:
+                enlace = producto.locator(
+                    "a"
+                ).first.get_attribute(
+                    "href"
+                )
+            except:
+                enlace = ""
+
+            try:
+                precio = producto.locator(
+                    ".price"
+                ).inner_text()
+            except:
+                precio = ""
+
+            if nombre:
+                productos.append(
+                    {
+                        "nombre": nombre.strip(),
+                        "url": enlace,
+                        "precio": precio.strip()
+                    }
+                )
+
+        navegador.close()
 
     return productos
+
+
+# Verificación para evitar errores de importación
+if __name__ == "__main__":
+    print(obtener_productos())

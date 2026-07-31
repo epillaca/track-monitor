@@ -1,67 +1,22 @@
-
 from scraper import obtener_productos
-from storage import cargar_productos, guardar_productos
-from telegram_bot import enviar_mensaje
 
 
-def comparar(anteriores, actuales):
+def main():
 
-    antes = {
-        p["url"]: p
-        for p in anteriores
-    }
+    print("================================")
+    print(" Track Monitor iniciado")
+    print("================================")
 
-    ahora = {
-        p["url"]: p
-        for p in actuales
-    }
+    productos = obtener_productos()
 
-    nuevos = [
-        ahora[x]
-        for x in ahora
-        if x not in antes
-    ]
+    print(f"\nProductos encontrados: {len(productos)}")
 
-    eliminados = [
-        antes[x]
-        for x in antes
-        if x not in ahora
-    ]
-
-    mensaje = ""
-
-    if nuevos:
-        mensaje += "🆕 Productos nuevos:\n\n"
-
-        for p in nuevos:
-            mensaje += f"- {p['nombre']}\n"
-
-    if eliminados:
-        mensaje += "\n❌ Productos retirados:\n\n"
-
-        for p in eliminados:
-            mensaje += f"- {p['nombre']}\n"
-
-
-    if mensaje:
-        enviar_mensaje(mensaje)
-
-
-def ejecutar():
-
-    anteriores = cargar_productos()
-
-    actuales = obtener_productos()
-
-    comparar(
-        anteriores,
-        actuales
-    )
-
-    guardar_productos(
-        actuales
-    )
+    for producto in productos:
+        print("----------------------------")
+        print(f"Nombre : {producto.get('nombre')}")
+        print(f"Precio : {producto.get('precio')}")
+        print(f"Estado : {producto.get('estado')}")
 
 
 if __name__ == "__main__":
-    ejecutar()
+    main()

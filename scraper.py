@@ -17,13 +17,13 @@ def obtener_productos():
 
         pagina = navegador.new_page()
 
-        pagina.goto(
-            URL,
-            wait_until="networkidle",
-            timeout=60000
-        )
+pagina.goto(
+    URL,
+    wait_until="domcontentloaded",
+    timeout=90000
+)
 
-        pagina.wait_for_timeout(3000)
+        pagina.wait_for_timeout(8000)
 
         tarjetas = pagina.locator(
             "li.product"

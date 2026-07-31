@@ -25,6 +25,12 @@ pagina.goto(
 
         pagina.wait_for_timeout(8000)
 
+
+pagina.screenshot(
+    path="debug.png",
+    full_page=True
+)
+
         tarjetas = pagina.locator(
             "li.product"
         )

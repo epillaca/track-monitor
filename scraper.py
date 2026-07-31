@@ -1,53 +1,48 @@
-from playwright.sync_api import sync_playwright
+import requests
+from bs4 import BeautifulSoup
 
-URL = "https://cddistribution.com/pe/?s=ichibansho"
 
-def obtener_html():
+def obtener_productos():
+    """
+    Función principal del scraper.
+    Retorna una lista de productos.
+    """
 
-    with sync_playwright() as p:
+    productos = []
 
-        browser = p.chromium.launch(
-            channel="chrome",
-            headless=False,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--disable-dev-shm-usage",
-                "--no-first-run",
-                "--disable-infobars",
-            ]
+    try:
+        # URL de prueba (puedes cambiarla por tu fuente real)
+        url = "https://example.com"
+
+        response = requests.get(
+            url,
+            timeout=10,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            }
         )
 
-        context = browser.new_context(
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
 
-            locale="es-PE",
+            productos.append({
+                "nombre": "Scraper funcionando",
+                "precio": 0,
+                "estado": "OK"
+            })
 
-            timezone_id="America/Lima",
+        else:
+            productos.append({
+                "nombre": "Error HTTP",
+                "precio": 0,
+                "estado": response.status_code
+            })
 
-            viewport={
-                "width": 1366,
-                "height": 768
-            },
+    except Exception as e:
+        productos.append({
+            "nombre": "Error scraper",
+            "precio": 0,
+            "estado": str(e)
+        })
 
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
-        )
-
-        page = context.new_page()
-
-        # Oculta navigator.webdriver
-        page.add_init_script("""
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined
-        });
-        """)
-
-        page.goto(URL, wait_until="networkidle", timeout=120000)
-
-        page.wait_for_timeout(5000)
-
-        print(page.title())
-
-        html = page.content()
-
-        browser.close()
-
-        return html
+    return productos

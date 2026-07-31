@@ -14,7 +14,12 @@ def obtener_productos():
             headless=True
         )
 
-        pagina = navegador.new_page()
+        pagina = navegador.new_page(
+            viewport={
+                "width": 1280,
+                "height": 1200
+            }
+        )
 
         pagina.goto(
             URL,
@@ -24,13 +29,34 @@ def obtener_productos():
 
         pagina.wait_for_timeout(8000)
 
+        # Archivos de debug para revisar qué carga GitHub Actions
+        pagina.screenshot(
+            path="pagina.png",
+            full_page=True
+        )
+
+        html = pagina.content()
+
+        with open(
+            "pagina.html",
+            "w",
+            encoding="utf-8"
+        ) as f:
+            f.write(html)
+
+
+        # Buscar productos WooCommerce
         tarjetas = pagina.locator(
             "li.product"
         )
 
         cantidad = tarjetas.count()
 
-        print("Productos encontrados:", cantidad)
+        print(
+            "Productos encontrados:",
+            cantidad
+        )
+
 
         for i in range(cantidad):
 
@@ -42,15 +68,18 @@ def obtener_productos():
                 ).inner_text()
 
             except:
-                continue
+                nombre = ""
 
             try:
                 enlace = producto.locator(
                     "a"
-                ).first.get_attribute("href")
+                ).first.get_attribute(
+                    "href"
+                )
 
             except:
                 enlace = ""
+
 
             try:
                 precio = producto.locator(
@@ -60,14 +89,19 @@ def obtener_productos():
             except:
                 precio = ""
 
-            productos.append(
-                {
-                    "nombre": nombre.strip(),
-                    "url": enlace,
-                    "precio": precio.strip()
-                }
-            )
+
+            if nombre:
+
+                productos.append(
+                    {
+                        "nombre": nombre.strip(),
+                        "url": enlace,
+                        "precio": precio.strip()
+                    }
+                )
+
 
         navegador.close()
+
 
     return productos
